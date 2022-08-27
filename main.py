@@ -1,3 +1,6 @@
+# -*- coding: utf-8 -*-
+
+
 import random
 from time import localtime
 from requests import get, post
@@ -41,12 +44,8 @@ def get_weather(region):
     response = get(region_url, headers=headers).json()
     if response["code"] == "404":
         print("推送消息失败，请检查地区名是否有误！")
-        os.system("pause")
-        sys.exit(1)
     elif response["code"] == "401":
         print("推送消息失败，请检查和风天气key是否正确！")
-        os.system("pause")
-        sys.exit(1)
     else:
         # 获取地区的location--id
         location_id = response["location"][0]["id"]
@@ -208,17 +207,14 @@ if __name__ == "__main__":
             config = eval(f.read())
     except FileNotFoundError:
         print("推送消息失败，请检查config.txt文件是否与程序位于同一路径")
-        os.system("pause")
-        sys.exit(1)
     except SyntaxError:
         print("推送消息失败，请检查配置文件格式是否正确")
-        os.system("pause")
-        sys.exit(1)
- 
+
     # 获取accessToken
     accessToken = get_access_token()
     # 接收的用户
     users = config["user"]
+    # print(users)
     # 传入地区获取天气信息
     region = config["region"]
     weather, temp, wind_dir = get_weather(region)
@@ -230,4 +226,3 @@ if __name__ == "__main__":
     # 公众号推送消息
     for user in users:
         send_message(user, accessToken, region, weather, temp, wind_dir, note_ch, note_en)
-    os.system("pause")
