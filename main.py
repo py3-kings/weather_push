@@ -8,15 +8,15 @@ from datetime import datetime, date
 from zhdate import ZhDate
 import sys
 import os
- 
- 
+
+
 def get_color():
     # 获取随机颜色
     get_colors = lambda n: list(map(lambda i: "#" + "%06x" % random.randint(0, 0xFFFFFF), range(n)))
     color_list = get_colors(100)
     return random.choice(color_list)
- 
- 
+
+
 def get_access_token():
     # appId
     app_id = config["app_id"]
@@ -32,8 +32,8 @@ def get_access_token():
         sys.exit(1)
     # print(access_token)
     return access_token
- 
- 
+
+
 def get_weather(region):
     headers = {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) '
@@ -58,8 +58,8 @@ def get_weather(region):
     # 风向
     wind_dir = response["now"]["windDir"]
     return weather, temp, wind_dir
- 
- 
+
+
 def get_birthday(birthday, year, today):
     birthday_year = birthday.split("-")[0]
     # 判断是否为农历生日
@@ -77,7 +77,7 @@ def get_birthday(birthday, year, today):
         birthday_day = birthday.day
         # 今年生日
         year_date = date(year, birthday_month, birthday_day)
- 
+
     else:
         # 获取国历生日的今年对应月和日
         birthday_month = int(birthday.split("-")[1])
@@ -99,8 +99,8 @@ def get_birthday(birthday, year, today):
         birth_date = year_date
         birth_day = str(birth_date.__sub__(today)).split(" ")[0]
     return birth_day
- 
- 
+
+
 def get_ciba():
     url = "http://open.iciba.com/dsapi/"
     headers = {
@@ -112,9 +112,18 @@ def get_ciba():
     note_en = r.json()["content"]
     note_ch = r.json()["note"]
     return note_ch, note_en
- 
- 
-def send_message(to_user, access_token, region_name, weather, temp, wind_dir, note_ch, note_en):
+
+
+def comment():
+    word = "见字如唔，展信舒颜"
+    word1 = '今天又是成为仙女的一天'
+    word2 = '可以不漂亮，但咱们不可以不搞笑'
+    word3 = '花很灿烂也很温柔，目之所及皆是美好'
+    return word, word1, word2, word3
+
+
+def send_message(to_user, access_token, region_name, weather, temp, wind_dir, note_ch, note_en, word, word1, word2,
+                 word3):
     url = "https://api.weixin.qq.com/cgi-bin/message/template/send?access_token={}".format(access_token)
     week_list = ["星期日", "星期一", "星期二", "星期三", "星期四", "星期五", "星期六"]
     year = localtime().tm_year
@@ -122,13 +131,13 @@ def send_message(to_user, access_token, region_name, weather, temp, wind_dir, no
     day = localtime().tm_mday
     today = datetime.date(datetime(year=year, month=month, day=day))
     week = week_list[today.isoweekday() % 7]
-    # 获取在一起的日子的日期格式
-    love_year = int(config["love_date"].split("-")[0])
-    love_month = int(config["love_date"].split("-")[1])
-    love_day = int(config["love_date"].split("-")[2])
-    love_date = date(love_year, love_month, love_day)
-    # 获取在一起的日期差
-    love_days = str(today.__sub__(love_date)).split(" ")[0]
+    # # 获取在一起的日子的日期格式
+    # love_year = int(config["love_date"].split("-")[0])
+    # love_month = int(config["love_date"].split("-")[1])
+    # love_day = int(config["love_date"].split("-")[2])
+    # love_date = date(love_year, love_month, love_day)
+    # # 获取在一起的日期差
+    # love_days = str(today.__sub__(love_date)).split(" ")[0]
     # 获取所有生日数据
     birthdays = {}
     for k, v in config.items():
@@ -160,10 +169,10 @@ def send_message(to_user, access_token, region_name, weather, temp, wind_dir, no
                 "value": wind_dir,
                 "color": get_color()
             },
-            "love_day": {
-                "value": love_days,
-                "color": get_color()
-            },
+            # "love_day": {
+            #     "value": love_days,
+            #     "color": get_color()
+            # },
             "note_en": {
                 "value": note_en,
                 "color": get_color()
@@ -171,17 +180,33 @@ def send_message(to_user, access_token, region_name, weather, temp, wind_dir, no
             "note_ch": {
                 "value": note_ch,
                 "color": get_color()
-            }
+            },
+            "comment": {
+                "value": word,
+                "color": get_color()
+            },
+            "comment1": {
+                "value": word1,
+                "color": get_color()
+            },
+            "comment2": {
+                "value": word2,
+                "color": get_color()
+            },
+            "comment3": {
+                "value": word3,
+                "color": get_color()
+            },
         }
     }
     for key, value in birthdays.items():
-        # 获取距离下次生日的时间
+    # 获取距离下次生日的时间
         birth_day = get_birthday(value["birthday"], year, today)
         if birth_day == 0:
             birthday_data = "今天{}生日哦，祝{}生日快乐！".format(value["name"], value["name"])
         else:
             birthday_data = "距离{}的生日还有{}天".format(value["name"], birth_day)
-        # 将生日数据插入data
+    # 将生日数据插入data
         data["data"][key] = {"value": birthday_data, "color": get_color()}
     headers = {
         'Content-Type': 'application/json',
@@ -199,8 +224,8 @@ def send_message(to_user, access_token, region_name, weather, temp, wind_dir, no
         print("推送消息成功")
     else:
         print(response)
- 
- 
+
+
 if __name__ == "__main__":
     try:
         with open("config.txt", encoding="utf-8") as f:
@@ -210,19 +235,20 @@ if __name__ == "__main__":
     except SyntaxError:
         print("推送消息失败，请检查配置文件格式是否正确")
 
-    # 获取accessToken
-    accessToken = get_access_token()
-    # 接收的用户
-    users = config["user"]
-    # print(users)
-    # 传入地区获取天气信息
-    region = config["region"]
-    weather, temp, wind_dir = get_weather(region)
-    note_ch = config["note_ch"]
-    note_en = config["note_en"]
-    if note_ch == "" and note_en == "":
-        # 获取词霸每日金句
-        note_ch, note_en = get_ciba()
-    # 公众号推送消息
-    for user in users:
-        send_message(user, accessToken, region, weather, temp, wind_dir, note_ch, note_en)
+# 获取accessToken
+accessToken = get_access_token()
+# 接收的用户
+users = config["user"]
+# print(users)
+# 传入地区获取天气信息
+region = config["region"]
+weather, temp, wind_dir = get_weather(region)
+note_ch = ''  # config["note_ch"]
+note_en = ''  # config["note_en"]
+# if note_ch == "" and note_en == "":
+#     # 获取词霸每日金句
+#     note_ch, note_en = get_ciba()
+word, word1, word2, word3 = comment()
+# 公众号推送消息
+for user in users:
+    send_message(user, accessToken, region, weather, temp, wind_dir, note_ch, note_en, word, word1, word2, word3)
