@@ -131,13 +131,13 @@ def send_message(to_user, access_token, region_name, weather, temp, wind_dir, no
     day = localtime().tm_mday
     today = datetime.date(datetime(year=year, month=month, day=day))
     week = week_list[today.isoweekday() % 7]
-    # # 获取在一起的日子的日期格式
-    # love_year = int(config["love_date"].split("-")[0])
-    # love_month = int(config["love_date"].split("-")[1])
-    # love_day = int(config["love_date"].split("-")[2])
-    # love_date = date(love_year, love_month, love_day)
-    # # 获取在一起的日期差
-    # love_days = str(today.__sub__(love_date)).split(" ")[0]
+    # 获取在一起的日子的日期格式
+    love_year = int(config["love_date"].split("-")[0])
+    love_month = int(config["love_date"].split("-")[1])
+    love_day = int(config["love_date"].split("-")[2])
+    love_date = date(love_year, love_month, love_day)
+    # 获取在一起的日期差
+    love_days = str(today.__sub__(love_date)).split(" ")[0]
     # 获取所有生日数据
     birthdays = {}
     for k, v in config.items():
@@ -169,10 +169,10 @@ def send_message(to_user, access_token, region_name, weather, temp, wind_dir, no
                 "value": wind_dir,
                 "color": get_color()
             },
-            # "love_day": {
-            #     "value": love_days,
-            #     "color": get_color()
-            # },
+            "love_day": {
+                "value": love_days,
+                "color": get_color()
+            },
             "note_en": {
                 "value": note_en,
                 "color": get_color()
@@ -200,13 +200,13 @@ def send_message(to_user, access_token, region_name, weather, temp, wind_dir, no
         }
     }
     for key, value in birthdays.items():
-    # 获取距离下次生日的时间
+        # 获取距离下次生日的时间
         birth_day = get_birthday(value["birthday"], year, today)
         if birth_day == 0:
             birthday_data = "今天{}生日哦，祝{}生日快乐！".format(value["name"], value["name"])
         else:
             birthday_data = "距离{}的生日还有{}天".format(value["name"], birth_day)
-    # 将生日数据插入data
+        # 将生日数据插入data
         data["data"][key] = {"value": birthday_data, "color": get_color()}
     headers = {
         'Content-Type': 'application/json',
